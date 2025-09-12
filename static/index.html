@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apartment Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+    }
+    .card {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+  <div id="app" class="w-full max-w-sm">
+
+    <!-- Login Form -->
+    <div id="login-view" class="card bg-white p-8 rounded-xl shadow-md space-y-6">
+      <h2 class="text-3xl font-bold text-center text-gray-800">Login</h2>
+      <div>
+        <label for="login_username" class="block text-gray-700">Username</label>
+        <input type="text" id="login_username" placeholder="Enter username" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label for="login_password" class="block text-gray-700">Password</label>
+        <input type="password" id="login_password" placeholder="Enter password" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <button onclick="handleLogin()" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors">Login</button>
+      <div class="text-center text-sm">
+        <p class="text-gray-600">Don't have an account? <a href="#" onclick="showRegister()" class="text-blue-600 font-medium hover:underline">Register here</a></p>
+      </div>
+    </div>
+
+    <!-- Registration Form -->
+    <div id="register-view" class="card bg-white p-8 rounded-xl shadow-md space-y-4 hidden">
+      <h2 class="text-3xl font-bold text-center text-gray-800">Register</h2>
+      <div>
+        <label for="reg_username" class="block text-gray-700">Username</label>
+        <input type="text" id="reg_username" placeholder="Choose a username" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label for="reg_password" class="block text-gray-700">Password</label>
+        <input type="password" id="reg_password" placeholder="Create a password" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label for="reg_name" class="block text-gray-700">Full Name</label>
+        <input type="text" id="reg_name" placeholder="Your full name" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label for="reg_flat" class="block text-gray-700">Flat Number</label>
+        <input type="text" id="reg_flat" placeholder="Your flat number" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label for="reg_contact" class="block text-gray-700">Contact ID</label>
+        <input type="text" id="reg_contact" placeholder="Your contact ID" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-gray-700 mb-1">Role</label>
+        <div class="flex gap-4">
+          <label>
+            <input type="radio" name="reg_role" value="member" checked>
+            Member
+          </label>
+          <label>
+            <input type="radio" name="reg_role" value="secretary">
+            Secretary
+          </label>
+          <label>
+            <input type="radio" name="reg_role" value="treasurer">
+            Treasurer
+          </label>
+        </div>
+      </div>
+      <button onclick="handleRegister()" class="w-full bg-green-600 text-white font-semibold py-2 rounded-lg hover:bg-green-700 transition-colors">Register</button>
+      <div class="text-center text-sm">
+        <p class="text-gray-600">Already have an account? <a href="#" onclick="showLogin()" class="text-blue-600 font-medium hover:underline">Login here</a></p>
+      </div>
+    </div>
+
+    <!-- Message Display -->
+    <div id="message-display" class="mt-4 p-4 rounded-lg text-sm text-center font-medium transition-all duration-300"></div>
+
+  </div>
+
+  <script>
+    // Helper function to show a message
+    function showMessage(message, type = 'success') {
+      const display = document.getElementById('message-display');
+      display.textContent = message;
+      display.className = 'mt-4 p-4 rounded-lg text-sm text-center font-medium transition-all duration-300'; // Reset classes
+      if (type === 'success') {
+        display.classList.add('bg-green-100', 'text-green-800');
+      } else if (type === 'error') {
+        display.classList.add('bg-red-100', 'text-red-800');
+      }
+      display.style.opacity = '1';
+      setTimeout(() => {
+        display.style.opacity = '0';
+      }, 5000); // Hide after 5 seconds
+    }
+
+    // Function to show the registration form and hide others
+    function showRegister() {
+      document.getElementById('login-view').classList.add('hidden');
+      document.getElementById('register-view').classList.remove('hidden');
+      document.getElementById('message-display').textContent = '';
+    }
+
+    // Function to show the login form and hide others
+    function showLogin() {
+      document.getElementById('login-view').classList.remove('hidden');
+      document.getElementById('register-view').classList.add('hidden');
+      document.getElementById('message-display').textContent = '';
+    }
+
+    // Handle user registration
+    async function handleRegister() {
+      const data = {
+        username: document.getElementById("reg_username").value,
+        password: document.getElementById("reg_password").value,
+        name: document.getElementById("reg_name").value,
+        flat_number: document.getElementById("reg_flat").value,
+        contact_id: document.getElementById("reg_contact").value,
+        role: document.querySelector('input[name="reg_role"]:checked').value
+      };
+
+      try {
+        const response = await fetch("/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          // Optionally switch to login view on successful registration
+          setTimeout(showLogin, 2000);
+        } else {
+          showMessage(result.detail || "Registration failed", 'error');
+        }
+      } catch (error) {
+        showMessage("An error occurred. Please try again later.", 'error');
+      }
+    }
+
+    // Handle user login
+    async function handleLogin() {
+      const data = {
+        username: document.getElementById("login_username").value,
+        password: document.getElementById("login_password").value
+      };
+
+      try {
+        const response = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          showMessage(result.message, 'success');
+          // Open dashboard.html in a new window with the user's name as a query parameter
+          window.location.href = `/dashboard`;
+          //window.open(`/static/dashboard.html?name=${encodeURIComponent(result.name)}`, "_blank");
+        } else {
+          showMessage(result.detail || "Login failed", 'error');
+        }
+      } catch (error) {
+        showMessage("An error occurred. Please try again later.", 'error');
+      }
+    }
+  </script>
+</body>
+</html>
