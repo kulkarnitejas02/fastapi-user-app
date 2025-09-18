@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas, database
 from datetime import datetime
+from fastapi import Query
 
 router = APIRouter()
 
@@ -30,6 +31,7 @@ def require_secretary_or_treasurer(user: models.User = Depends(get_current_user)
 def create_expense(
     expense: schemas.ExpenseCreate,
     #username: str,  # Pass username from frontend or session
+    username: str = Query(...),
     db: Session = Depends(get_db),
     user: models.User = Depends(require_secretary_or_treasurer)
 ):
@@ -47,7 +49,7 @@ def create_expense(
         description=expense.description,
         amount=expense.amount,
         paid_by=expense.paid_by,
-        #created_by=user.id  # or user.id if you want
+        created_by=user.id  # or user.id if you want
     )
     print("Creating expense:", new_expense)
     try:

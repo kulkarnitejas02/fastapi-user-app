@@ -52,12 +52,12 @@ def read_index():
 
 @app.get('/me')
 def get_me(session: models.User = Depends(get_current_user)):
-    return {"name": session.name, "role": session.role}
+    return {"name": session.name, "role": session.role, "username": session.username, "userId": session.id}
 
 @app.get('/users')
 def get_users(db: Session = Depends(get_db)):
     users = db.query(models.User).all()
-    return [{"id": user.id, "flat_number":user.flat_number} for user in users]
+    return [{"flat_number":user.flat_number} for user in users]
 
 @app.post("/register", response_model=schemas.UserOut)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):

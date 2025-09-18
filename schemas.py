@@ -35,6 +35,7 @@ class ExpenseCreate(BaseModel):
     description: str
     amount: float
     paid_by: int 
+    created_by: int  
 
 class ExpenseOut(ExpenseCreate):
     id: int

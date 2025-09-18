@@ -60,6 +60,7 @@
             <th>Description</th>
             <th>Amount</th>
             <th>Paid By</th>
+            <th>Created By</th>
           </tr>
         </thead>
         <tbody id="expenses-body">
@@ -73,6 +74,8 @@
     // Get user info from backend (session)
     let name = "User";
     let role = "guest";
+    let username = "";
+    let userId = null; // You need to set userId from session
     async function getUserInfo() {
       try {
         const response = await fetch("/me");
@@ -80,6 +83,8 @@
           const user = await response.json();
           name = user.name || "User";
           role = user.role || "guest";
+          username = user.username || "";
+          userId = user.userId || null;
         }
       } catch {}
       document.getElementById("welcome").innerText = `Welcome, ${name}!`;
@@ -115,17 +120,6 @@
       document.getElementById("expenses-table-card").classList.remove("hidden");
       loadExpenses();
     };
-    document.getElementById("back-from-form-btn").onclick = function() {
-      document.getElementById("dashboard-card").classList.remove("hidden");
-      document.getElementById("expense-form-card").classList.add("hidden");
-      document.getElementById("expenses-table-card").classList.add("hidden");
-    };
-    document.getElementById("back-from-table-btn").onclick = function() {
-      document.getElementById("dashboard-card").classList.remove("hidden");
-      document.getElementById("expense-form-card").classList.add("hidden");
-      document.getElementById("expenses-table-card").classList.add("hidden");
-    };
-
     // Populate Paid By dropdown
     async function loadUsers() {
       try {
@@ -165,18 +159,20 @@
           description: document.getElementById("exp_desc").value,
           amount: parseFloat(document.getElementById("exp_amount").value),
           paid_by: parseInt(paidByValue),
+          created_by: userId // You need to set userId from session
         };
-        console.log("Expense Form Data:", data);
-        console.log("Expense name is:" + data.expense_name);
-        console.log("Amount is:" + data.amount);
-        console.log("Date is " + data.date);
-        console.log("Month is " + data.month);
-        console.log("Description is " + data.description);
+        //console.log("Expense Form Data:", data);
+        // console.log("Expense name is:" + data.expense_name);
+        // console.log("Amount is:" + data.amount);
+        // console.log("Date is " + data.date);
+        // console.log("Month is " + data.month);
+        // console.log("Description is " + data.description);
         console.log("paid by is " + data.paid_by);
         try {
-          const response = await fetch("/expenses", {
+          const response = await fetch(`/expenses?username=${encodeURIComponent(username)}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(data)
           });
           const result = await response.json();
@@ -208,6 +204,7 @@
             <td>${exp.description}</td>
             <td>${exp.amount}</td>
             <td>${exp.paid_by}</td>
+            <td>${exp.created_by}</td>
           `;
           tbody.appendChild(tr);
         });
