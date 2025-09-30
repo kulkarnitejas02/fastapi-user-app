@@ -1,57 +1,33 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-import models, schemas, database
-from datetime import datetime
+import models, schemas
+from fastapi.logger import logger
 from fastapi import Query
+from dependencies import get_db, get_current_user_by_username, get_current_user_id, require_secretary_or_treasurer, validate_user_exists
 
-router = APIRouter()
+router = APIRouter(prefix="/expenses", tags=["expenses"])
 
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-def get_current_user(username: str, db: Session = Depends(get_db)):
-    return db.query(models.User).filter(models.User.username == username).first()
-
-def get_current_user_by_id(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.username == username).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user.id
-
-def require_secretary_or_treasurer(user: models.User = Depends(get_current_user)):
-    if user.role not in ["secretary", "treasurer"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    return user
-
-@router.post("/expenses", response_model=schemas.ExpenseOut)
+@router.post("/", response_model=schemas.ExpenseOut)
 def create_expense(
     expense: schemas.ExpenseCreate,
-    #username: str,  # Pass username from frontend or session
-    username: str = Query(...),
-    db: Session = Depends(get_db),
-    user: models.User = Depends(require_secretary_or_treasurer)
+    username: str = Query(...),  # Require username as query param
+    db: Session = Depends(get_db)
 ):
-    print("Incomming expense data:", expense)
-    from datetime import datetime
-        # Convert string date to Python date object if needed
-    if isinstance(expense.date, str):
-        expense_date = datetime.strptime(expense.date, "%Y-%m-%d").date()
-    else:
-        expense_date = expense.date
+    user = validate_user_exists(username, db)
+    # Allow only secretary, treasurer, and member roles to create expenses
+    if user.role not in ["secretary", "treasurer", "member"]:
+        raise HTTPException(status_code=403, detail="Not authorized - invalid role")
+    print("Received expense data from frontend:", expense.dict())
     new_expense = models.Expense(
-        date=expense_date,
+        date=expense.date,
         month=expense.month,
         expense_name=expense.expense_name,
         description=expense.description,
         amount=expense.amount,
         paid_by=expense.paid_by,
-        created_by=user.id  # or user.id if you want
+        created_by=expense.created_by  # Set created_by to current user's ID
     )
-    print("Creating expense:", new_expense)
+    print("Incoming expense data:", new_expense)
     try:
         db.add(new_expense)
         db.commit()
@@ -59,8 +35,13 @@ def create_expense(
         return new_expense
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to create expense: {str(e)}")
+        logger.error(f"Error adding expense to DB: {e}")
+        raise HTTPException(status_code=500, detail="Failed to add expense to database")
 
-@router.get("/expenses", response_model=list[schemas.ExpenseOut])
-def list_expenses(db: Session = Depends(get_db)):
+@router.get("/", response_model=list[schemas.ExpenseOut])
+def list_expenses(username: str = Query(...), db: Session = Depends(get_db)):
+    user = validate_user_exists(username, db)
+    # Allow only secretary, treasurer, and member roles to view expenses
+    if user.role not in ["secretary", "treasurer", "member"]:
+        raise HTTPException(status_code=403, detail="Not authorized - invalid role")
     return db.query(models.Expense).all()

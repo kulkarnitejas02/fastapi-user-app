@@ -21,4 +21,16 @@ class Expense(Base):
     description = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
     paid_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_by = Column(String, ForeignKey("users.name"), nullable=False)
+
+class Maintenance(Base):
+    __tablename__ = "maintenance"
+    id = Column(Integer, primary_key=True, index=True)
+    owner_name = Column(String, nullable=False)
+    date = Column(Date, nullable=False)
+    month = Column(String, nullable=False)
+    year = Column(Integer, nullable=False)
+    amount = Column(Float, nullable=False)
+    paid_by = Column(Integer, nullable=False)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    updated_by = Column(Integer, ForeignKey("users.id"), nullable=True)

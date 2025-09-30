@@ -34,7 +34,7 @@ class ExpenseCreate(BaseModel):
     expense_name: str
     description: str
     amount: float
-    paid_by: int 
+    paid_by: int | None = None
     created_by: int  
 
 class ExpenseOut(ExpenseCreate):
@@ -42,6 +42,28 @@ class ExpenseOut(ExpenseCreate):
     date: date
     month: str
     created_by: int
+
+    class Config:
+        from_attributes = True
+
+class MaintenanceCreate(BaseModel):
+    owner_name: str
+    date: str
+    month: str
+    year: int
+    amount: float
+    paid_by: int | None = None
+
+class MaintenanceOut(MaintenanceCreate):
+    id: int
+    date: date
+    month: str
+    year: int
+    amount: float
+    paid_by: int | None = None
+    owner_name: str
+    created_by: int
+    updated_by: int | None = None
 
     class Config:
         from_attributes = True

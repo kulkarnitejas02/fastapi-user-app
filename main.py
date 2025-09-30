@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi import Cookie
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi import Depends
@@ -8,25 +9,17 @@ from sqlalchemy.orm import Session
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi import Request
 import models, schemas, database, expense
-#from expense import get_current_user, require_secretary_or_treasurer
 from expense import router as expense_router
+from income import router as income_router
+from dependencies import get_db, validate_user_exists
 import os
-from fastapi import Cookie
 from fastapi.responses import JSONResponse
 models.Base.metadata.create_all(bind=database.engine)
 
-# DB session dependency
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 app = FastAPI()
 app.include_router(expense_router)
-
-from fastapi import Cookie
+app.include_router(income_router)
+# app.include_router(auth_router)
 
 def get_current_user(session: str = Cookie(None), db: Session = Depends(get_db)):
     if not session:
@@ -42,7 +35,7 @@ def get_current_user(session: str = Cookie(None), db: Session = Depends(get_db))
 if os.path.isdir("static"):
     app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
-# Serve templates
+# Serve template files if exists
 if os.path.isdir("template"):
     app.mount("/template", StaticFiles(directory="template", html=True), name="static")
 
@@ -50,14 +43,19 @@ if os.path.isdir("template"):
 def read_index():
     return FileResponse(os.path.join("static", "index.html"))
 
-@app.get('/me')
+@app.get("/me")
 def get_me(session: models.User = Depends(get_current_user)):
-    return {"name": session.name, "role": session.role, "username": session.username, "userId": session.id}
+    return {"name": session.name,
+             "role": session.role, 
+             "username":session.username, 
+             "userid": session.id, 
+             "flat_number": session.flat_number,
+}
 
-@app.get('/users')
+@app.get("/users")
 def get_users(db: Session = Depends(get_db)):
     users = db.query(models.User).all()
-    return [{"flat_number":user.flat_number} for user in users]
+    return [{"id": user.id, "flat_number": user.flat_number} for user in users]
 
 @app.post("/register", response_model=schemas.UserOut)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -75,10 +73,6 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     except Exception as e:
         print(f"Error during registration: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-#class LoginRequest(BaseModel):
-#    username: str
-#    password: str
 
 @app.post("/login")
 def login(login_req: schemas.LoginRequest, db: Session = Depends(get_db)):
@@ -106,38 +100,60 @@ def login(login_req: schemas.LoginRequest, db: Session = Depends(get_db)):
 
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/dashboard")
 def dashboard(request: Request, session: str = Depends(get_current_user)):
     # session is verified by get_current_user
     return templates.TemplateResponse(
         "dashboard.html",
         {"request": request, "user": session}
     )
-    #with open("templates/dashboard.html", "r", encoding="utf-8") as f:
-     #   html_content = f.read()
-    #return HTMLResponse(content=html_content)
+
+@app.get("/dashboard/expenses", response_class=HTMLResponse)
+def show_expenses(request: Request, session: str = Depends(get_current_user)):
+    # session is verified by get_current_user
+    return templates.TemplateResponse(
+        "expense.html",
+        {"request": request, "user": session}
+    )
+
+@app.get("/dashboard/income", response_class=HTMLResponse)
+def show_income(request: Request, session: str = Depends(get_current_user)):
+    # session is verified by get_current_user
+    return templates.TemplateResponse(
+        "income.html",
+        {"request": request, "user": session}
+    )
 
 @app.post("/logout")
 def logout(response: Response):
     response.delete_cookie("session")
     return {"message": "Logged out successfully"}
 
-#@app.post("/expenses", response_model=schemas.ExpenseOut)
-# def create_expense(
-#     expense: schemas.ExpenseCreate,
-#     username: str,  # Pass username from frontend or session
-#     db: Session = Depends(get_db),
-#     user: models.User = Depends(require_secretary_or_treasurer)
-# ):
-#     new_expense = models.Expense(
-#         **expense.dict(),
-#         created_by=user.id
-#     )
-#     db.add(new_expense)
-#     db.commit()
-#     db.refresh(new_expense)
-#     return new_expense
+@app.put("/reset-password")
+def reset_password(reset_req: dict, db: Session = Depends(get_db)):
+    username = reset_req.get("username")
+    contact_id = reset_req.get("contact_id") 
+    new_password = reset_req.get("new_password")
+    
+    if not all([username, contact_id, new_password]):
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    # Find user by username and contact_id to verify identity
+    user = db.query(models.User).filter(
+        models.User.username == username,
+        models.User.contact_id == contact_id
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found or invalid contact ID")
+    
+    # Update the password
+    try:
+        user.password = new_password
+        db.commit()
+        return {"message": "Password reset successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to reset password")
 
-# @app.get("/expenses", response_model=list[schemas.ExpenseOut])
-# def list_expenses(db: Session = Depends(get_db)):
-#     return db.query(models.Expense).all()
+

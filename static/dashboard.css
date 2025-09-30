@@ -1,0 +1,17 @@
+body { font-family: Arial, sans-serif; margin: 40px; }
+.container { max-width: 600px; margin: auto; text-align: center; }
+.card { border: 1px solid #ddd; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+.vertical-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  justify-items: stretch;
+  align-items: center;
+  margin: 0 auto;
+  max-width: 350px;
+}
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 8px; }
+th { background: #f3f4f6; }
+.hidden { display: none; }
+
