@@ -1,0 +1,13 @@
+fastapi-env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+.env
+venv/
+.venv/
+env/
+.git/
+tests/
+fastapi-env/
