@@ -74,8 +74,8 @@ def create_maintenance(
     print(f"Received maintenance data: {maintenance_data}")
     
         # Convert date string to Python date object
-    if isinstance(maintenance_data['date'], str):
-        maintenance_data['date'] = datetime.datetime.strptime(maintenance_data['date'], "%Y-%m-%d").date()
+    # if isinstance(maintenance_data['date'], str):
+    #     maintenance_data['date'] = datetime.datetime.strptime(maintenance_data['date'], "%Y-%m-%d").date()
 
     # Validate year field
     if maintenance_data.get('year') is None:
@@ -99,7 +99,8 @@ def create_maintenance(
     db.add(new_maintenance)
     db.commit()
     db.refresh(new_maintenance)
-    return new_maintenance  
+    return schemas.MaintenanceOut.model_validate(new_maintenance) 
+    
 
 @router.get("/", response_model=list[schemas.MaintenanceOut])
 def list_maintenance(
@@ -130,8 +131,8 @@ def list_maintenance(
         query = query.filter(models.Maintenance.month == month)
     
     maintenances = query.all()
+    #return [schemas.MaintenanceOut.model_validate(m) for m in maintenances]
     return maintenances
-
 
 @router.get("/{maintenance_id}/receipt")
 def download_receipt(

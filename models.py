@@ -8,7 +8,7 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
     name = Column(String, nullable=False)
-    flat_number = Column(String, nullable=False)
+    flat_number = Column(Integer, nullable=False)
     contact_id = Column(String, nullable=False)
     role = Column(String, nullable=False) 
 
@@ -17,6 +17,7 @@ class Expense(Base):
     id = Column(Integer, primary_key=True, index=True)
     date = Column(Date, nullable=False)
     month = Column(String, nullable=False)
+    year = Column(Integer, nullable=False)
     expense_name = Column(String, nullable=False)
     description = Column(String, nullable=False)
     amount = Column(Float, nullable=False)

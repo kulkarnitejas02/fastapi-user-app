@@ -77,10 +77,20 @@ document.addEventListener("DOMContentLoaded", function() {
       e.preventDefault();
       const monthInput = document.getElementById("exp_month").value;
       const monthName = new Date(monthInput + "-01").toLocaleString('default', { month: 'long' });
+
+      const [yearStr, monthNumStr] = monthInput.split("-");
+      const year = parseInt(yearStr);
+      //validate year
+      if(isNaN(year) || year < 2000 || year > 2100) {
+        document.getElementById("expense-message").innerText = "Please enter a valid year.";
+        return;
+      }
+
       const data = {
         expense_name: document.getElementById("exp_name").value,
         date: document.getElementById("exp_date").value,
         month: monthName,
+        year: year,
         description: document.getElementById("exp_desc").value,
         amount: parseFloat(document.getElementById("exp_amount").value),
         paid_by: parseInt(document.getElementById("exp_paid_by").value),
@@ -107,11 +117,18 @@ document.addEventListener("DOMContentLoaded", function() {
     };
   }
 
-  async function loadExpenses() {
+  async function loadExpenses(year = null, month = null) {
     const tbody = document.getElementById("expenses-body");
     tbody.innerHTML = "";
+
     try {
-      const response = await fetch(`/expenses/?username=${encodeURIComponent(username)}`);
+
+      let url = `/expenses/?username=${encodeURIComponent(username)}`;
+      if (year) url += `&year=${encodeURIComponent(year)}`;
+      if (month) url += `&month=${encodeURIComponent(month)}`;
+      
+
+      const response = await fetch(url, { credentials: "include" });
       const expenses = await response.json();
       expenses.forEach(exp => {
         const tr = document.createElement("tr");

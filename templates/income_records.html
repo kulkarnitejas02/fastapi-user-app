@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income Records - Apartment Management</title>
+    <link rel="stylesheet" href="/static/css_files/income_records.css">
+</head>
+<body>
+    <div class="container">
+        <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
+        
+        <div class="header">
+            <h1>📊 Income Records Dashboard</h1>
+            <p>Welcome, <strong>{{ user.name }}</strong> ({{ user.role.title() }})</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <label><strong>Select Year:</strong></label>
+            <select id="yearSelect">
+                <option value="2023">2023</option>
+                <option value="2024">2024</option>
+                <option value="2025" selected>2025</option>
+                <option value="2026">2026</option>
+            </select>
+            <button onclick="loadYearSummary()">📈 Load Year Summary</button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="card">
+                <h3>💰 Total Year Income</h3>
+                <div class="amount" id="yearlyTotal">₹0</div>
+                <small id="yearlyCount">0 records</small>
+            </div>
+            <div class="card">
+                <h3>📅 Selected Month Income</h3>
+                <div class="amount" id="monthlyTotal">₹0</div>
+                <small id="monthlyCount">Click a month to view</small>
+            </div>
+        </div>
+
+        <!-- Monthly Grid -->
+        <h2 class="section-title">Monthly Breakdown</h2>
+        <div class="monthly-grid" id="monthlyGrid">
+            <!-- Months will be populated by JavaScript -->
+        </div>
+
+        <!-- Records Table -->
+        <div id="recordsSection" style="display: none;">
+            <h2 class="section-title" id="recordsTitle">Records for Selected Month</h2>
+            <table class="records-table">
+                <thead>
+                    <tr>
+                        <th>📅 Date</th>
+                        <th>👤 Owner Name</th>
+                        <th>🏠 Flat Number</th>
+                        <th>💵 Amount</th>
+                        <th>📝 Created By</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsTableBody">
+                    <!-- Records will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        // Pass user data from template to JavaScript
+        const userData = {
+            username: "{{ user.username }}",
+            name: "{{ user.name }}",
+            role: "{{ user.role }}"
+        };
+    </script>
+    <script src="/static/JSScripts/income_records.js"></script>
+</body>
+</html>

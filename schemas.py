@@ -6,7 +6,7 @@ class UserCreate(BaseModel):
     username: str
     password: str
     name: str
-    flat_number: str
+    flat_number: int
     contact_id: str
     role: str = "member"  # New field for role
 
@@ -14,7 +14,7 @@ class UserOut(BaseModel):
     id: int
     username: str
     name: str
-    flat_number: str
+    flat_number: int
     contact_id: str
     role: str  # New field for role
 
@@ -29,30 +29,33 @@ class LoginRequest(BaseModel):
         from_attributes = True
 
 class ExpenseCreate(BaseModel):
-    date: str
+    date: date
     month: str
+    year: int
     expense_name: str
     description: str
     amount: float
     paid_by: int | None = None
-    created_by: int  
+    created_by: str 
 
 class ExpenseOut(ExpenseCreate):
     id: int
     date: date
     month: str
-    created_by: int
+    year: int
+    created_by: str
 
     class Config:
         from_attributes = True
 
 class MaintenanceCreate(BaseModel):
     owner_name: str
-    date: str
+    date: date
     month: str
     year: int
     amount: float
     paid_by: int | None = None
+    owner_name: str
 
 class MaintenanceOut(MaintenanceCreate):
     id: int

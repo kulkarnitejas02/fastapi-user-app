@@ -72,23 +72,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
   }
 
-  // async function loadUsers() {
-  //   try {
-  //     const response = await fetch("/users");
-  //     const users = await response.json();
-  //     const select = document.getElementById("exp_paid_by");
-  //     select.innerHTML = '<option value="">Select Paid By</option>';
-  //     users.forEach(user => {
-  //       const option = document.createElement("option");
-  //       option.value = user.flat_number;
-  //       option.text = user.flat_number;
-  //       select.appendChild(option);
-  //     });
-  //     console.log(option);
-  //   } catch {}
-  // }
-  // loadUsers();
-
   const maintenanceForm = document.getElementById("maintenance-form");
   if (maintenanceForm) {
     maintenanceForm.onsubmit = async function(e) {

@@ -11,7 +11,9 @@ from fastapi import Request
 import models, schemas, database, expense
 from expense import router as expense_router
 from income import router as income_router
-from dependencies import get_db, validate_user_exists
+from income_records import router as income_records_router
+from expense_records import router as expense_records_router
+from dependencies import get_db, get_current_user
 import os
 from fastapi.responses import JSONResponse
 models.Base.metadata.create_all(bind=database.engine)
@@ -19,17 +21,8 @@ models.Base.metadata.create_all(bind=database.engine)
 app = FastAPI()
 app.include_router(expense_router)
 app.include_router(income_router)
-# app.include_router(auth_router)
-
-def get_current_user(session: str = Cookie(None), db: Session = Depends(get_db)):
-    if not session:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = db.query(models.User).filter(models.User.username == session).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid session")
-    
-    return user
+app.include_router(income_records_router)
+app.include_router(expense_records_router)
 
 # Serve static frontend
 if os.path.isdir("static"):
@@ -121,6 +114,22 @@ def show_income(request: Request, session: str = Depends(get_current_user)):
     # session is verified by get_current_user
     return templates.TemplateResponse(
         "income.html",
+        {"request": request, "user": session}
+    )
+
+@app.get("/dashboard/income_records", response_class=HTMLResponse)
+def show_income_records(request: Request, session: str = Depends(get_current_user)):
+    # session is verified by get_current_user
+    return templates.TemplateResponse(
+        "income_records.html",
+        {"request": request, "user": session}
+    )
+
+@app.get("/dashboard/expense_records", response_class=HTMLResponse)
+def show_expense_records(request: Request, session: str = Depends(get_current_user)):
+    # session is verified by get_current_user
+    return templates.TemplateResponse(
+        "expense_records.html",
         {"request": request, "user": session}
     )
 
