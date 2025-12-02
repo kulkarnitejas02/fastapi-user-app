@@ -24,6 +24,19 @@ app.include_router(income_router)
 app.include_router(income_records_router)
 app.include_router(expense_records_router)
 
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://societymanagementweb.netlify.app"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Serve static frontend
 if os.path.isdir("static"):
     app.mount("/static", StaticFiles(directory="static", html=True), name="static")
@@ -87,6 +100,8 @@ def login(login_req: schemas.LoginRequest, db: Session = Depends(get_db)):
         key="session", 
         value=user.username, 
         httponly=True,
+        secure=True,
+        samesite="None",
         max_age=1800  # 30 minutes
     )
     return response

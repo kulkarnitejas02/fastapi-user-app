@@ -1,12 +1,12 @@
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 # Install system dependencies needed for building Python packages
 RUN apt-get update && apt-get install -y \
+    build-essential \
     gcc \
     g++ \
-    python3-dev \
     libffi-dev \
-    build-essential \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create virtual environment
@@ -21,7 +21,7 @@ RUN pip install --upgrade pip && \
 # ==============================================================================
 # STAGE 2: Runtime Stage (Final Application Image)
 # ==============================================================================
-FROM python:3.11-slim as runtime
+FROM python:3.11-slim AS runtime
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1

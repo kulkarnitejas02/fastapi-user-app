@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   document.getElementById('logoutBtn').onclick = async function() {
-      await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+      await fetch('/logout', { method: 'POST', credentials: 'include' });
       window.location.href = '/';
   };
 });
