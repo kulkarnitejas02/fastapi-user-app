@@ -1,7 +1,7 @@
 FROM python:3.11-slim AS builder
 
-# Install system dependencies needed for building Python packages
-RUN apt-get update && apt-get install -y \
+# build dependencies + python headers for wheels
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
     g++ \
@@ -9,56 +9,32 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
-
-# ==============================================================================
-# STAGE 2: Runtime Stage (Final Application Image)
-# ==============================================================================
-FROM python:3.11-slim AS runtime
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Install only runtime dependencies (no build tools)
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# Copy virtual environment from builder stage
-COPY --from=builder /opt/venv /opt/venv
-
-# Set working directory
 WORKDIR /app
 
-# Create non-root user for security
-RUN adduser --disabled-password --gecos '' --uid 1000 appuser
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Create directories and set permissions
-RUN mkdir -p /app/data /app/static /app/templates && \
-    chown -R appuser:appuser /app
+COPY . .
 
-# Copy application files
-COPY --chown=appuser:appuser . .
+# final runtime stage
+FROM python:3.11-slim AS runtime
 
-# Switch to non-root user
+# runtime deps only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# copy app + installed packages from builder
+COPY --from=builder /app /app
+COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# optionally non-root user
+RUN adduser --disabled-password --gecos '' appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
-
-# Command to run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
