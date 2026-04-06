@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi import Depends
 from fastapi import Response
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi import Request
 import models, schemas, database, expense
@@ -73,11 +74,18 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
         new_user = models.User(**user.dict())
         db.add(new_user)
+        db.flush()
         db.commit()
         db.refresh(new_user)
         return new_user
+    except HTTPException:
+        raise
+    except IntegrityError as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Username already taken")
     except Exception as e:
         print(f"Error during registration: {e}")
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/login")
