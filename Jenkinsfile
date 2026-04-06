@@ -116,7 +116,7 @@ pipeline {
 
     post {
         always {
-            node {
+            node('') {
                 echo '=========================================='
                 echo 'Pipeline Cleanup'
                 echo '=========================================='
@@ -125,7 +125,7 @@ pipeline {
             }
         }
         success {
-            node {
+            node('') {
                 echo '=========================================='
                 echo '✓ PIPELINE SUCCEEDED!'
                 echo '=========================================='
@@ -138,7 +138,7 @@ pipeline {
             }
         }
         failure {
-            node {
+            node('') {
                 echo '=========================================='
                 echo '✗ PIPELINE FAILED!'
                 echo '=========================================='
