@@ -1,8 +1,13 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.12'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
     environment {
-        DOCKER_IMAGE = 'your-dockerhub-username/fastapi-app'
+        DOCKER_IMAGE = 'kulkarnitejas02/fastapi-app'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         REGISTRY = 'docker.io'
     }

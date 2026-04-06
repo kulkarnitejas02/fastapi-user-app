@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:latest
+    container_name: fastapi-jenkins
+    ports:
+      - "8080:8080"      # Jenkins web UI
+      - "50000:50000"    # Jenkins agent port
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker socket for Docker-in-Docker
+      - /usr/bin/docker:/usr/bin/docker            # Docker CLI
+    user: "0:0"  # Run as root to access Docker socket
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
+    driver: local
