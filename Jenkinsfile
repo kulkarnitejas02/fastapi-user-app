@@ -116,29 +116,34 @@ pipeline {
 
     post {
         always {
-            echo '=========================================='
-            echo 'Pipeline Cleanup'
-            echo '=========================================='
-            junit 'test-results.xml' ?: [:]
-            sh 'docker system prune -f || true'
-            sh 'echo "✓ Cleanup completed"'
+            node {
+                echo '=========================================='
+                echo 'Pipeline Cleanup'
+                echo '=========================================='
+                junit 'test-results.xml' ?: [:]
+                sh 'echo "✓ Cleanup completed"'
+            }
         }
         success {
-            echo '=========================================='
-            echo '✓ PIPELINE SUCCEEDED!'
-            echo '=========================================='
-            echo 'All stages completed successfully:'
-            echo '  1. ✓ Code checked out'
-            echo '  2. ✓ All tests passed'
-            echo '  3. ✓ Code quality verified'
-            echo '  4. ✓ Docker image built'
-            echo '  5. ✓ Image pushed to Docker Hub'
+            node {
+                echo '=========================================='
+                echo '✓ PIPELINE SUCCEEDED!'
+                echo '=========================================='
+                echo 'All stages completed successfully:'
+                echo '  1. ✓ Code checked out'
+                echo '  2. ✓ All tests passed'
+                echo '  3. ✓ Code quality verified'
+                echo '  4. ✓ Docker image built'
+                echo '  5. ✓ Image pushed to Docker Hub'
+            }
         }
         failure {
-            echo '=========================================='
-            echo '✗ PIPELINE FAILED!'
-            echo '=========================================='
-            echo 'Check logs above for details'
+            node {
+                echo '=========================================='
+                echo '✗ PIPELINE FAILED!'
+                echo '=========================================='
+                echo 'Check logs above for details'
+            }
         }
     }
 }
