@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'python:3.12'
+            image 'docker:24-dind'
             args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
@@ -13,6 +13,17 @@ pipeline {
     }
 
     stages {
+        stage('Setup') {
+            steps {
+                echo '=========================================='
+                echo 'Stage: Setting up Python and Dependencies'
+                echo '=========================================='
+                sh 'apk add --no-cache python3 py3-pip git'
+                sh 'pip3 install -q pytest pytest-cov'
+                sh 'echo "✓ Setup completed"'
+            }
+        }
+
         stage('Checkout') {
             steps {
                 echo '=========================================='
@@ -30,10 +41,9 @@ pipeline {
                 echo '=========================================='
                 script {
                     try {
-                        sh 'pip install -q pytest pytest-cov'
-                        sh 'pip install -q -r requirements.txt'
+                        sh 'pip3 install -q -r requirements.txt'
                         sh 'echo "Running all tests from tests/ directory..."'
-                        sh 'pytest tests/ -v --tb=short --junit-xml=test-results.xml'
+                        sh 'python3 -m pytest tests/ -v --tb=short --junit-xml=test-results.xml'
                         sh 'echo "✓ All test cases passed successfully!"'
                     } catch (Exception e) {
                         sh 'echo "✗ Test cases failed!"'
@@ -50,7 +60,7 @@ pipeline {
                 echo '=========================================='
                 script {
                     try {
-                        sh 'pip install -q flake8'
+                        sh 'pip3 install -q flake8'
                         sh 'flake8 --max-line-length=88 --extend-ignore=E203,W503 main.py expense.py income.py models.py schemas.py database.py dependencies.py || true'
                         sh 'echo "✓ Code quality check completed"'
                     } catch (Exception e) {
