@@ -10,7 +10,11 @@ load_dotenv()
 # Vercel automatically provides POSTGRES_URL
 # # Note: SQLAlchemy requires 'postgresql://' instead of 'postgres://' 
 DATABASE_URL = os.getenv("POSTGRES_URL")
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+
+if not DATABASE_URL:
+    raise ValueError("POSTGRES_URL environment variable is not set. Please set it in your Vercel environment variables.")
+
+if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # engine = create_engine(DATABASE_URL)
