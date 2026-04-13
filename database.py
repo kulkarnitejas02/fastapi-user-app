@@ -6,26 +6,21 @@ import os
 
 load_dotenv()
 
-
 # Vercel automatically provides POSTGRES_URL
-# # Note: SQLAlchemy requires 'postgresql://' instead of 'postgres://' 
+# Note: SQLAlchemy requires 'postgresql://' instead of 'postgres://' 
 DATABASE_URL = os.getenv("POSTGRES_URL")
 
-# Don't validate at import time - let it fail gracefully when queries are made
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+if not DATABASE_URL:
+    raise ValueError(
+        "POSTGRES_URL not found. On Vercel, set it in project Settings → Environment Variables. "
+        "Locally, add POSTGRES_URL to your .env file."
+    )
+
+if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# engine = create_engine(DATABASE_URL)
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+print(f"Connecting to PostgreSQL: {DATABASE_URL[:50]}...")
 
-# DATABASE_URL = "sqlite:///./users.db"
-
-if DATABASE_URL:
-    engine = create_engine(DATABASE_URL)
-    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-else:
-    # Dummy objects for startup - will fail when actually used
-    engine = None
-    SessionLocal = None
-
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
