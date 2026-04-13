@@ -11,10 +11,8 @@ load_dotenv()
 # # Note: SQLAlchemy requires 'postgresql://' instead of 'postgres://' 
 DATABASE_URL = os.getenv("POSTGRES_URL")
 
-if not DATABASE_URL:
-    raise ValueError("POSTGRES_URL environment variable is not set. Please set it in your Vercel environment variables.")
-
-if DATABASE_URL.startswith("postgres://"):
+# Don't validate at import time - let it fail gracefully when queries are made
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # engine = create_engine(DATABASE_URL)
@@ -22,6 +20,12 @@ if DATABASE_URL.startswith("postgres://"):
 
 # DATABASE_URL = "sqlite:///./users.db"
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+if DATABASE_URL:
+    engine = create_engine(DATABASE_URL)
+    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+else:
+    # Dummy objects for startup - will fail when actually used
+    engine = None
+    SessionLocal = None
+
 Base = declarative_base()
