@@ -17,9 +17,16 @@ from expense_records import router as expense_records_router
 from dependencies import get_db, get_current_user
 import os
 from fastapi.responses import JSONResponse
-models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
+
+@app.on_event("startup")
+def startup():
+    try:
+        models.Base.metadata.create_all(bind=database.engine)
+    except Exception as e:
+        print(f"Warning: Could not create database tables on startup: {e}")
+
 app.include_router(expense_router)
 app.include_router(income_router)
 app.include_router(income_records_router)
